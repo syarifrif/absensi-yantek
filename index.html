@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absensi Karyawan</title>
+<style>
+body{font-family:sans-serif;margin:20px;max-width:600px}
+label{display:block;margin:8px 0 4px}
+input,select,button{width:100%;padding:10px;border-radius:6px;border:1px solid #ccc}
+button{margin-top:12px;cursor:pointer}
+</style>
+
+<h2>Form Absensi</h2>
+<form id="formAbsensi">
+  <label>NIP</label>
+  <input name="nip" required>
+
+  <label>Nama</label>
+  <input name="nama" required>
+
+  <label>Status</label>
+  <select name="status" required>
+    <option value="HADIR">Hadir</option>
+    <option value="IZIN">Izin</option>
+    <option value="SAKIT">Sakit</option>
+    <option value="LEMBUR">Lembur</option>
+  </select>
+
+  <label>Foto Selfie</label>
+  <input type="file" id="foto" accept="image/*" capture="user">
+
+  <button type="button" id="btnLokasi">Ambil Lokasi</button>
+  <input type="hidden" name="lat">
+  <input type="hidden" name="lng">
+
+  <button type="submit">Kirim Absensi</button>
+</form>
+
+<p id="info"></p>
+
+<script>
+const API_URL = "PASTE_URL_WEBAPP_DI_SINI"; // ganti dengan URL Web App dari Apps Script
+
+document.getElementById("btnLokasi").onclick = ()=>{
+  navigator.geolocation.getCurrentPosition(pos=>{
+    document.querySelector("input[name=lat]").value = pos.coords.latitude;
+    document.querySelector("input[name=lng]").value = pos.coords.longitude;
+    document.getElementById("info").textContent = "Lokasi berhasil diambil";
+  }, err=>{
+    document.getElementById("info").textContent = "Gagal ambil lokasi: "+err.message;
+  });
+};
+
+document.getElementById("formAbsensi").onsubmit = async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  let fotoBase64 = "";
+  if (fd.get("foto").size > 0) {
+    const file = fd.get("foto");
+    fotoBase64 = await toBase64(file);
+  }
+  const data = {
+    nip: fd.get("nip"),
+    nama: fd.get("nama"),
+    status: fd.get("status"),
+    lat: fd.get("lat"),
+    lng: fd.get("lng"),
+    foto: fotoBase64.replace(/^data:image\/\w+;base64,/, "")
+  };
+  const res = await fetch(API_URL, {
+    method:"POST",
+    body: JSON.stringify(data)
+  });
+  const json = await res.json();
+  document.getElementById("info").textContent = json.message;
+  e.target.reset();
+};
+
+function toBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=err=>reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+</script>
