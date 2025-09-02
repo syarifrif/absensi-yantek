@@ -5,66 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Absensi YANTEK ULP Karebosi</title>
 <style>
-  :root{
-    --bg:#0e0f12; --card:#171821; --muted:#9aa0aa; --primary:#f5c451; --accent:#6dd3fb;
-    --line:#252736; --text:#e7e9ee;
-  }
+  :root{ --bg:#0e0f12; --card:#171821; --muted:#9aa0aa; --primary:#f5c451; --accent:#6dd3fb; --line:#252736; --text:#e7e9ee; }
   *{box-sizing:border-box}
-  body{
-    margin:0; min-height:100vh; color:var(--text);
-    background:
-      radial-gradient(1200px 600px at 110% -10%, #1f2430 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, #1a1d27 0%, transparent 60%),
-      linear-gradient(180deg,#0c0d11 0%,#0e0f12 100%);
-    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial;
-    display:flex; align-items:center; justify-content:center; padding:24px;
-  }
-  .card{
-    width:100%; max-width:820px; background:var(--card);
-    border:1px solid var(--line); border-radius:20px; padding:22px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
-  }
+  body{ margin:0; min-height:100vh; color:var(--text);
+    background: radial-gradient(1200px 600px at 110% -10%, #1f2430 0%, transparent 60%),
+               radial-gradient(900px 500px at -10% 110%, #1a1d27 0%, transparent 60%),
+               linear-gradient(180deg,#0c0d11 0%,#0e0f12 100%);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial; }
+  .container{max-width:1000px;margin:0 auto;padding:24px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px; margin-bottom:16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);}
   .header{display:flex; align-items:center; justify-content:space-between}
-  .brand{display:flex; align-items:center; gap:12px}
+  .brand{display:flex; gap:12px; align-items:center}
   .brand img{width:46px;height:46px;border-radius:10px;object-fit:cover;display:none}
   .brand img.loaded{display:block}
   h1{margin:0; font-size:20px; letter-spacing:.3px}
   .clock{color:var(--primary); font-variant-numeric:tabular-nums; font-weight:600}
-  .row{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
-  .row-1{grid-template-columns: 1fr}
-  label{display:block; font-size:13px; color:var(--muted); margin:14px 2px 6px}
-  input,select,button{
-    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
-    background:#111218; color:var(--text); outline:none;
-  }
-  input::placeholder{color:#6f7682}
-  .btn{
-    background:linear-gradient(135deg, var(--primary), #ffd98f);
-    color:#1b1b1b; border:none; font-weight:700; letter-spacing:.3px;
-    box-shadow:0 10px 22px rgba(245,196,81,.28);
-    transition:transform .08s ease, filter .08s ease;
-  }
-  .btn:hover{filter:saturate(1.1); transform:translateY(-1px)}
+  label{display:block; font-size:13px; color:var(--muted); margin:10px 2px 6px}
+  input,select,button{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#111218; color:var(--text); }
+  .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+  .row-1{grid-template-columns:1fr}
+  .btn{background:linear-gradient(135deg, var(--primary), #ffd98f); color:#1b1b1b; border:none; font-weight:700}
   .btn-ghost{background:#111218; color:var(--accent); border:1px solid #263041}
-  .muted{color:var(--muted); font-size:12px; margin-top:8px}
-  .divider{height:1px; background:var(--line); margin:16px 0}
-  .status{display:flex; gap:10px}
-  .pill{ padding:8px 12px; border-radius:999px; border:1px solid var(--line); cursor:pointer; user-select:none }
+  .pill{display:inline-block; padding:8px 12px; border-radius:999px; border:1px solid var(--line); cursor:pointer; margin-right:8px}
   .pill.active{background:rgba(245,196,81,.12); border-color:#3a2e12; color:var(--primary)}
-  .list{ position:relative; }
-  .suggest{
-    position:absolute; top:100%; left:0; right:0; background:#0f1116; border:1px solid var(--line);
-    border-radius:12px; overflow:hidden; margin-top:6px; max-height:240px; overflow-y:auto; display:none; z-index:20;
-  }
-  .suggest button{
-    width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; color:var(--text);
-    border-bottom:1px solid #151826; cursor:pointer;
-  }
-  .suggest button:hover{background:#161a23}
-  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+  .muted{color:var(--muted); font-size:12px; margin-top:6px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #252736;text-align:left}
+  th{color:#9aa0aa}
 </style>
 </head>
 <body>
+<div class="container">
+
+  <!-- Header -->
   <div class="card">
     <div class="header">
       <div class="brand">
@@ -76,45 +50,35 @@
       </div>
       <div class="clock" id="clock">--:--:--</div>
     </div>
+  </div>
 
-    <div class="actions">
-      <button class="btn-ghost" id="btnDashboard" type="button">Buka Dashboard Rekap</button>
-    </div>
+  <!-- Form Absen -->
+  <div class="card">
+    <h3 style="margin-top:0">Form Absen</h3>
 
     <label>Status</label>
-      <div class="status" id="statusGroup">
-      <div class="pill active" data-value="MASUK">MASUK</div>
-      <div class="pill" data-value="PULANG">PULANG</div>
-      <div class="pill" data-value="IZIN">IZIN</div>
-      <div class="pill" data-value="SAKIT">SAKIT</div>
-      <div class="pill" data-value="LEMBUR">LEMBUR</div>
+    <div id="statusGroup">
+      <span class="pill active" data-value="MASUK">MASUK</span>
+      <span class="pill" data-value="PULANG">PULANG</span>
+      <span class="pill" data-value="IZIN">IZIN</span>
+      <span class="pill" data-value="SAKIT">SAKIT</span>
+      <span class="pill" data-value="LEMBUR">LEMBUR</span>
     </div>
 
-
     <div class="row">
-      <div>
-        <label>Pilih Karyawan</label>
-        <div class="list">
-          <input id="search" placeholder="Cari nama atau NIP…">
-          <div id="suggest" class="suggest"></div>
-        </div>
-      </div>
       <div>
         <label>NIP</label>
-        <input id="nip" placeholder="NIP" required>
+        <input id="nip" placeholder="NIP">
       </div>
-    </div>
-
-    <div class="row row-1">
       <div>
         <label>Nama</label>
-        <input id="nama" placeholder="Nama karyawan" required>
+        <input id="nama" placeholder="Nama karyawan">
       </div>
     </div>
 
     <div class="row">
       <div>
-        <label>Foto Selfie</label>
+        <label>Foto Selfie (opsional)</label>
         <input type="file" id="foto" accept="image/*" capture="user">
       </div>
       <div>
@@ -122,8 +86,6 @@
         <button class="btn-ghost" id="btnLokasi" type="button">Ambil Lokasi</button>
       </div>
     </div>
-
-    <div class="divider"></div>
 
     <div class="row">
       <div>
@@ -148,138 +110,184 @@
     <iframe name="sink" id="sink" style="display:none"></iframe>
   </div>
 
+  <!-- Laporan -->
+  <div class="card">
+    <h3 style="margin-top:0">Laporan</h3>
+
+    <div class="row">
+      <div class="row-1">
+        <label>Laporan Harian</label>
+        <div class="row">
+          <input type="date" id="dailyDate">
+          <button class="btn-ghost" id="btnDaily">Tampilkan</button>
+          <button class="btn" id="btnDailyCsv">Export CSV</button>
+        </div>
+      </div>
+      <div class="row-1">
+        <label>Laporan Bulanan</label>
+        <div class="row">
+          <input type="month" id="monthInput">
+          <button class="btn-ghost" id="btnMonthly">Tampilkan</button>
+          <button class="btn" id="btnMonthlyCsv">Export CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px; overflow:auto">
+      <table id="tbl">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="lapInfo"></p>
+  </div>
+
+</div>
+
 <script>
-/* =============== KONFIGURASI =============== */
-const API_URL = "https://script.google.com/macros/s/AKfycbw-T7UViQnb4ONZbaDYzzMRnAm36KAmez9axeYhLnegacZR7pacoXlgPx9bg3rebBzi/exec"; // <--- GANTI DENGAN URL /exec
-/* =========================================== */
+/* ===== KONFIG ===== */
+const API_URL = "https://script.google.com/macros/s/AKfycbyya-WCBsb_cCIviIMY5x9irlKkWfsb3RvAzFdCOsRUR8dDbVjYS8FbRlds7mtUqLMs/exec"; // <-- GANTI ke URL /exec backend
+/* ================== */
 
-const PEGAWAI = [
-  ["72321573MKS","NURDIN NUR"],
-  ["79231562MKS","SUTRISNO"],
-  ["79231563MKS","ABBAS"],
-  ["79231566MKS","HARYANTO"],
-  ["79231568MKS","RAPI"],
-  ["79231570MKS","RUDY SUGIARTO"],
-  ["79231572MKS","DARWIN"],
-  ["79231574MKS","EKO SUTRISNO"],
-  ["80231576MKS","FITRAWANDI"],
-  ["80231578MKS","MUH ARSYAD DG RURUNG"],
-  ["80231580MKS","NUR HAMZAR"],
-  ["80231582MKS","DENNY USMAN"],
-  ["72321574MKS","ISMAIL"],
-  ["72321575MKS","RUSNADI"],
-  ["72321576MKS","SYARIFUDDIN ISMAIL"],
-  ["72321577MKS","SUMO HARYANTO"],
-  ["89223348MKS","AGUSTINUS"],
-  ["89223349MKS","ABD HARIS"],
-  ["89223350MKS","HASRIANTO.ST"],
-  ["89223351MKS","SAPRI"],
-  ["89223352MKS","SANGKALA"],
-  ["89223353MKS","MUSJIFRIONO"]
-];
-
-const byId = x=>document.getElementById(x);
-const $nip = byId('nip'), $nama = byId('nama'), $search = byId('search');
-const $suggest = byId('suggest'), $info = byId('info');
-const $lat = byId('lat'), $lng = byId('lng'), $foto = byId('foto');
-
-function setInfo(t, cls=''){ $info.className='muted '+cls; $info.textContent=t; }
-
-// clock
+// jam header
 setInterval(()=>{
-  const d=new Date(); const p=n=>String(n).padStart(2,'0');
-  byId('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  document.getElementById('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 },1000);
 
-// dashboard
-byId('btnDashboard').onclick = ()=>{
-  const d = new Date(); const p=n=>String(n).padStart(2,'0');
-  const month = `${d.getFullYear()}-${p(d.getMonth()+1)}`;
-  window.open(`${API_URL}?action=dashboard&month=${month}`, '_blank');
-};
-
-// status
-let STATUS = 'MASUK';
-byId('statusGroup').onclick = (e)=>{
+// status toggle
+let STATUS='MASUK';
+document.getElementById('statusGroup').onclick = (e)=>{
   const pill = e.target.closest('.pill'); if(!pill) return;
-  [...byId('statusGroup').children].forEach(p=>p.classList.remove('active'));
-  pill.classList.add('active'); STATUS = pill.dataset.value || 'MASUK';
+  [...document.getElementById('statusGroup').children].forEach(x=>x.classList.remove('active'));
+  pill.classList.add('active'); STATUS = pill.dataset.value;
 };
 
-// search
-function renderSuggest(q=''){
-  const qq = q.trim().toLowerCase();
-  const data = PEGAWAI.filter(([nip,nama]) =>
-    nip.toLowerCase().includes(qq) || nama.toLowerCase().includes(qq)
-  ).slice(0,30);
-  $suggest.innerHTML = data.map(([nip,nama]) =>
-    `<button type="button" data-nip="${nip}" data-nama="${nama}">${nama} — <span style="color:#8aa2">${nip}</span></button>`
-  ).join('');
-  $suggest.style.display = data.length ? 'block' : 'none';
-}
-$search.addEventListener('input', e=>renderSuggest(e.target.value));
-$suggest.addEventListener('click', e=>{
-  const btn=e.target.closest('button'); if(!btn) return;
-  $nip.value = btn.dataset.nip; $nama.value = btn.dataset.nama;
-  $suggest.style.display='none'; setInfo('Data karyawan terpilih.','ok');
-});
-
-// QR autofill
-const qs = new URLSearchParams(location.search);
-if (qs.get('nip')) $nip.value = qs.get('nip');
-if (qs.get('nama')) $nama.value = qs.get('nama');
-
-// lokasi
-byId('btnLokasi').onclick = ()=>{
+// ambil lokasi
+document.getElementById('btnLokasi').onclick = ()=>{
   setInfo('Mengambil lokasi…');
-  if(!navigator.geolocation){ setInfo('Peramban tidak mendukung GPS','warn'); return; }
+  if (!navigator.geolocation) return setInfo('Peramban tidak mendukung GPS','warn');
   navigator.geolocation.getCurrentPosition(p=>{
-    $lat.value = p.coords.latitude; $lng.value = p.coords.longitude;
-    setInfo('Lokasi berhasil diambil.','ok');
+    document.getElementById('lat').value = p.coords.latitude;
+    document.getElementById('lng').value = p.coords.longitude;
+    setInfo('Lokasi berhasil diambil','ok');
   }, err=> setInfo('Gagal ambil lokasi: '+err.message,'err'), {enableHighAccuracy:true, timeout:10000});
 };
 
+function setInfo(t,cls){ const el=document.getElementById('info'); el.className='muted '+(cls||''); el.textContent=t; }
+
 // kirim (via form + iframe)
-byId('btnKirim').onclick = async ()=>{
-  if(!$nip.value.trim() || !$nama.value.trim()){ setInfo('Lengkapi NIP & Nama dulu.','warn'); return; }
+document.getElementById('btnKirim').onclick = async ()=>{
+  const nip = document.getElementById('nip').value.trim();
+  const nama= document.getElementById('nama').value.trim();
+  if (!nip || !nama){ setInfo('Lengkapi NIP & Nama.','warn'); return; }
 
   setInfo('Menyiapkan & mengirim data…');
-
+  const f = document.getElementById('foto').files[0];
   let fotoB64='', fotoType='';
-  const f = $foto.files[0];
   if (f){
     fotoType = f.type;
     fotoB64 = await fileToBase64(f);
     fotoB64 = fotoB64.replace(/^data:\w+\/[\w.+-]+;base64,/, '');
   }
-
   const payload = {
-    nip:$nip.value.trim(),
-    nama:$nama.value.trim(),
-    status:STATUS,
-    lat:$lat.value, lng:$lng.value,
-    foto:fotoB64, fotoType:fotoType
+    nip, nama, status:STATUS,
+    lat: document.getElementById('lat').value,
+    lng: document.getElementById('lng').value,
+    foto: fotoB64, fotoType
   };
 
-  const form = byId('formHidden');
+  const form = document.getElementById('formHidden');
   form.action = API_URL;
-  byId('payload').value = JSON.stringify(payload);
-
-  const sink = byId('sink');
-  sink.onload = ()=>{ setInfo('Terkirim. Cek Spreadsheet.','ok'); /* reset ringan */ $foto.value=''; };
+  document.getElementById('payload').value = JSON.stringify(payload);
+  const sink = document.getElementById('sink');
+  sink.onload = ()=> setInfo('Terkirim. Cek laporan harian.','ok');
   form.submit();
 };
 
+// util
 function fileToBase64(file){
   return new Promise((resolve,reject)=>{
     const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
   });
 }
 
-// default suggest list
-renderSuggest('');
+// ====== Laporan: GET JSON dari backend ======
+document.getElementById('btnDaily').onclick = async ()=>{
+  const date = document.getElementById('dailyDate').value || new Date().toISOString().slice(0,10);
+  const url = `${API_URL}?action=report&type=daily&date=${date}`;
+  const res = await fetch(url); const json = await res.json();
+  renderDaily(json.data||[], date);
+};
+
+document.getElementById('btnMonthly').onclick = async ()=>{
+  const month = document.getElementById('monthInput').value || new Date().toISOString().slice(0,7);
+  const url = `${API_URL}?action=report&type=monthly&month=${month}`;
+  const res = await fetch(url); const json = await res.json();
+  renderMonthly(json.data||[], month);
+};
+
+// CSV export
+document.getElementById('btnDailyCsv').onclick = ()=>{
+  const date = document.getElementById('dailyDate').value || new Date().toISOString().slice(0,10);
+  const rows = currentDailyRows;
+  if (!rows || !rows.length) return alert('Tampilkan laporan harian dulu.');
+  const csv = toCSV([['Tanggal',date],[],['NIP','Nama','Status','Masuk','Pulang','DurasiJam','LemburJam'],
+    ...rows.map(r=>[r.nip,r.nama,r.status,r.masuk,r.pulang,r.durasiJam,r.lemburJam])]);
+  downloadFile(csv, `Laporan-Harian-${date}.csv`);
+};
+
+document.getElementById('btnMonthlyCsv').onclick = ()=>{
+  const month = document.getElementById('monthInput').value || new Date().toISOString().slice(0,7);
+  const rows = currentMonthlyRows;
+  if (!rows || !rows.length) return alert('Tampilkan laporan bulanan dulu.');
+  const csv = toCSV([['Bulan',month],[],['NIP','Nama','Hadir','Izin','Sakit','Cuti','Hari Lembur','Total Jam','Total Lembur'],
+    ...rows.map(r=>[r.nip,r.nama,r.hadir,r.izin,r.sakit,r.cuti,r.lemburHari,r.totalJam,r.totalLembur])]);
+  downloadFile(csv, `Laporan-Bulanan-${month}.csv`);
+};
+
+let currentDailyRows=[], currentMonthlyRows=[];
+
+function renderDaily(rows, date){
+  currentDailyRows = rows;
+  const thead = document.getElementById('thead');
+  const tbody = document.getElementById('tbody');
+  thead.innerHTML = '<tr><th>NIP</th><th>Nama</th><th>Status</th><th>Masuk</th><th>Pulang</th><th>Durasi (jam)</th><th>Lembur (jam)</th></tr>';
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td>${r.nip}</td><td>${r.nama}</td><td>${r.status}</td>
+    <td>${r.masuk||''}</td><td>${r.pulang||''}</td>
+    <td>${r.durasiJam||0}</td><td>${r.lemburJam||0}</td>
+  </tr>`).join('');
+  document.getElementById('lapInfo').textContent = `Harian: ${date} — ${rows.length} baris.`;
+}
+
+function renderMonthly(rows, month){
+  currentMonthlyRows = rows;
+  const thead = document.getElementById('thead');
+  const tbody = document.getElementById('tbody');
+  thead.innerHTML = '<tr><th>NIP</th><th>Nama</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Cuti</th><th>Hari Lembur</th><th>Total Jam</th><th>Total Lembur</th></tr>';
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td>${r.nip}</td><td>${r.nama}</td>
+    <td>${r.hadir||0}</td><td>${r.izin||0}</td><td>${r.sakit||0}</td><td>${r.cuti||0}</td>
+    <td>${r.lemburHari||0}</td><td>${r.totalJam||0}</td><td>${r.totalLembur||0}</td>
+  </tr>`).join('');
+  document.getElementById('lapInfo').textContent = `Bulanan: ${month} — ${rows.length} baris.`;
+}
+
+function toCSV(rows){
+  return rows.map(r=>r.map(v=>{
+    const s = String(v==null?'':v);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\n');
+}
+
+function downloadFile(text, filename){
+  const blob = new Blob([text], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
 </script>
 </body>
 </html>
-
-
