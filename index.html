@@ -1,113 +1,286 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Form Absensi</title>
-  <style>
-    body{font-family:system-ui,Arial;margin:20px;max-width:640px}
-    label{display:block;margin:8px 0 4px}
-    input,select,button{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
-    button{cursor:pointer;margin-top:10px}
-    .muted{color:#666;font-size:12px;margin-top:8px}
-    iframe{display:none}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absensi Karyawan</title>
+<style>
+  :root{
+    --bg:#0e0f12; --card:#171821; --muted:#9aa0aa; --primary:#f5c451; --accent:#6dd3fb;
+    --line:#252736; --text:#e7e9ee;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 110% -10%, #1f2430 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #1a1d27 0%, transparent 60%),
+      linear-gradient(180deg,#0c0d11 0%,#0e0f12 100%);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    width:100%; max-width:760px; background:var(--card);
+    border:1px solid var(--line); border-radius:20px; padding:22px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .header{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{
+    width:42px; height:42px; border-radius:12px;
+    background:linear-gradient(135deg, var(--primary), #ffd98f);
+    box-shadow:0 6px 18px rgba(245,196,81,.35);
+  }
+  h1{margin:0; font-size:20px; letter-spacing:.3px}
+  .clock{color:var(--primary); font-variant-numeric:tabular-nums; font-weight:600}
+  .row{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+  .row-1{grid-template-columns: 1fr}
+  label{display:block; font-size:13px; color:var(--muted); margin:14px 2px 6px}
+  input,select,button{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
+    background:#111218; color:var(--text); outline:none;
+  }
+  input::placeholder{color:#6f7682}
+  select{appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%); background-position:calc(100% - 20px) calc(1em + 6px),calc(100% - 15px) calc(1em + 6px); background-size:5px 5px,5px 5px; background-repeat:no-repeat}
+  .btn{
+    background:linear-gradient(135deg, var(--primary), #ffd98f);
+    color:#1b1b1b; border:none; font-weight:700; letter-spacing:.3px;
+    box-shadow:0 10px 22px rgba(245,196,81,.28);
+    transition:transform .08s ease, filter .08s ease;
+  }
+  .btn:hover{filter:saturate(1.1); transform:translateY(-1px)}
+  .btn-ghost{background:#111218; color:var(--accent); border:1px solid #263041}
+  .muted{color:var(--muted); font-size:12px; margin-top:8px}
+  .divider{height:1px; background:var(--line); margin:16px 0}
+  .status{display:flex; gap:10px}
+  .pill{
+    padding:8px 12px; border-radius:999px; border:1px solid var(--line); cursor:pointer; user-select:none
+  }
+  .pill.active{background:rgba(245,196,81,.12); border-color:#3a2e12; color:var(--primary)}
+  .list{
+    position:relative;
+  }
+  .suggest{
+    position:absolute; top:100%; left:0; right:0; background:#0f1116; border:1px solid var(--line);
+    border-radius:12px; overflow:hidden; margin-top:6px; max-height:240px; overflow-y:auto; display:none; z-index:20;
+  }
+  .suggest button{
+    width:100%; text-align:left; padding:10px 12px; background:transparent; border:none; color:var(--text);
+    border-bottom:1px solid #151826; cursor:pointer;
+  }
+  .suggest button:hover{background:#161a23}
+  .hidden{display:none}
+  .ok{color:#8ddf9a}
+  .warn{color:#ffb86b}
+  .err{color:#ff7979}
+</style>
 </head>
 <body>
+  <div class="card">
+    <div class="header">
+      <div class="brand">
+        <div class="logo"></div>
+        <h1>Absensi Karyawan</h1>
+      </div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
 
-<h2>Form Absensi</h2>
+    <!-- STATUS MASUK/PULANG -->
+    <label>Status</label>
+    <div class="status" id="statusGroup">
+      <div class="pill active" data-value="MASUK">MASUK</div>
+      <div class="pill" data-value="PULANG">PULANG</div>
+    </div>
 
-<form id="formAbsensi" method="POST" target="hiddenFrame">
-  <label>NIP</label>
-  <input name="nip" required>
+    <div class="row">
+      <div>
+        <label>Pilih Karyawan</label>
+        <div class="list">
+          <input id="search" placeholder="Cari nama atau NIP…">
+          <div id="suggest" class="suggest"></div>
+        </div>
+      </div>
+      <div>
+        <label>NIP</label>
+        <input id="nip" placeholder="NIP" required>
+      </div>
+    </div>
 
-  <label>Nama</label>
-  <input name="nama" required>
+    <div class="row row-1">
+      <div>
+        <label>Nama</label>
+        <input id="nama" placeholder="Nama karyawan" required>
+      </div>
+    </div>
 
-  <label>Status</label>
-  <select name="status" required>
-    <option value="HADIR">Hadir</option>
-    <option value="IZIN">Izin</option>
-    <option value="SAKIT">Sakit</option>
-    <option value="LEMBUR">Lembur</option>
-  </select>
+    <div class="row">
+      <div>
+        <label>Foto Selfie</label>
+        <input type="file" id="foto" accept="image/*" capture="user">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn-ghost" id="btnLokasi" type="button">Ambil Lokasi</button>
+      </div>
+    </div>
 
-  <label>Foto Selfie</label>
-  <input type="file" id="foto" accept="image/*" capture="user">
+    <div class="divider"></div>
 
-  <button type="button" id="btnLokasi">Ambil Lokasi</button>
-  <input type="hidden" name="lat">
-  <input type="hidden" name="lng">
+    <div class="row">
+      <div>
+        <label>Latitude</label>
+        <input id="lat" readonly>
+      </div>
+      <div>
+        <label>Longitude</label>
+        <input id="lng" readonly>
+      </div>
+    </div>
 
-  <input type="hidden" name="payload" id="payload">
+    <div class="row row-1">
+      <button class="btn" id="btnKirim">Kirim Absensi</button>
+    </div>
 
-  <button type="submit" id="btnKirim">Kirim Absensi</button>
-</form>
+    <p class="muted" id="info">Siap untuk absen.</p>
 
-<p id="info" class="muted"></p>
-
-<iframe name="hiddenFrame" id="hiddenFrame"></iframe>
+    <!-- form & iframe hidden (anti-CORS) -->
+    <form id="formHidden" class="hidden" method="POST" target="sink"></form>
+    <input type="hidden" id="payload" name="payload" form="formHidden">
+    <iframe name="sink" id="sink" class="hidden"></iframe>
+  </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwtFCmmNx6W1SH3fS-SLL9NJclRmhGV4Mk_IWrHlfX-y2mt64gVb2aC4q52GFtKvWkm/exec"; // <-- ganti dengan URL /exec
+/* ================== KONFIG ================== */
+const API_URL = "https://script.google.com/macros/s/AKfycbwU2Z9cKOm4nEq2-3P_ul1sUVCwz_yFs7XBU9iddLJjTcx5XaJQVDX8X-kRevTYWLD8/exec"; // <--- GANTI DENGAN URL /exec
+/* ============================================ */
 
-document.getElementById('btnLokasi').onclick = ()=>{
-  const info = document.getElementById('info');
-  info.textContent = 'Mengambil lokasi...';
-  if (!navigator.geolocation){ info.textContent='Browser tidak mendukung GPS.'; return; }
-  navigator.geolocation.getCurrentPosition(p=>{
-    document.querySelector('input[name=lat]').value = p.coords.latitude;
-    document.querySelector('input[name=lng]').value = p.coords.longitude;
-    info.textContent = 'Lokasi berhasil diambil';
-  }, e=>{
-    info.textContent = 'Gagal ambil lokasi: ' + e.message;
-  }, {enableHighAccuracy:true, timeout:10000});
+/** Daftar karyawan (NIP | NAMA) */
+const PEGAWAI = [
+  ["72321573MKS","NURDIN NUR"],
+  ["79231562MKS","SUTRISNO"],
+  ["79231563MKS","ABBAS"],
+  ["79231566MKS","HARYANTO"],
+  ["79231568MKS","RAPI"],
+  ["79231570MKS","RUDY SUGIARTO"],
+  ["79231572MKS","DARWIN"],
+  ["79231574MKS","EKO SUTRISNO"],
+  ["80231576MKS","FITRAWANDI"],
+  ["80231578MKS","MUH ARSYAD DG RURUNG"],
+  ["80231580MKS","NUR HAMZAR"],
+  ["80231582MKS","DENNY USMAN"],
+  ["72321574MKS","ISMAIL"],
+  ["72321575MKS","RUSNADI"],
+  ["72321576MKS","SYARIFUDDIN ISMAIL"],
+  ["72321577MKS","SUMO HARYANTO"],
+  ["89223348MKS","AGUSTINUS"],
+  ["89223349MKS","ABD HARIS"],
+  ["89223350MKS","HASRIANTO.ST"],
+  ["89223351MKS","SAPRI"],
+  ["89223352MKS","SANGKALA"],
+  ["89223353MKS","MUSJIFRIONO"]
+];
+
+/* ==== UI helpers ==== */
+const byId = x=>document.getElementById(x);
+const $nip = byId('nip'), $nama = byId('nama'), $search = byId('search');
+const $suggest = byId('suggest'), $info = byId('info');
+const $lat = byId('lat'), $lng = byId('lng'), $foto = byId('foto');
+
+function setInfo(text, cls=''){ $info.className='muted ' + cls; $info.textContent=text; }
+
+/* Clock */
+setInterval(()=>{
+  const d=new Date(); const pad=n=>String(n).padStart(2,'0');
+  byId('clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+},1000);
+
+/* Status toggle */
+let STATUS = 'MASUK';
+byId('statusGroup').onclick = (e)=>{
+  const pill = e.target.closest('.pill'); if(!pill) return;
+  [...byId('statusGroup').children].forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active'); STATUS = pill.dataset.value || 'MASUK';
 };
 
-document.getElementById('formAbsensi').addEventListener('submit', async (e)=>{
-  const info = document.getElementById('info');
-  info.textContent = 'Menyiapkan & mengirim data...';
+/* Search & pick */
+function renderSuggest(q=''){
+  const qq = q.trim().toLowerCase();
+  const data = PEGAWAI.filter(([nip,nama]) =>
+    nip.toLowerCase().includes(qq) || nama.toLowerCase().includes(qq)
+  ).slice(0,20);
+  $suggest.innerHTML = data.map(([nip,nama]) =>
+    `<button type="button" data-nip="${nip}" data-nama="${nama}">${nama} — <span style="color:#8aa2; font-variant-numeric:tabular-nums">${nip}</span></button>`
+  ).join('');
+  $suggest.style.display = data.length ? 'block' : 'none';
+}
+$search.addEventListener('input', e=>renderSuggest(e.target.value));
+$suggest.addEventListener('click', e=>{
+  const btn=e.target.closest('button'); if(!btn) return;
+  $nip.value = btn.dataset.nip; $nama.value = btn.dataset.nama;
+  $suggest.style.display='none'; setInfo('Data karyawan terpilih.', 'ok');
+});
 
-  const fd = new FormData(e.target);
+/* Autofill via QR params */
+const qs = new URLSearchParams(location.search);
+if (qs.get('nip')) $nip.value = qs.get('nip');
+if (qs.get('nama')) $nama.value = qs.get('nama');
 
-  let fotoBase64 = '', fotoType = '';
-  const f = document.getElementById('foto').files[0];
-  if (f) {
-    fotoType = f.type; // image/webp / image/jpeg / image/png
-    fotoBase64 = await fileToBase64(f);
-    fotoBase64 = fotoBase64.replace(/^data:\w+\/[\w.+-]+;base64,/, '');
+/* Lokasi */
+byId('btnLokasi').onclick = ()=>{
+  setInfo('Mengambil lokasi…');
+  if(!navigator.geolocation){ setInfo('Peramban tidak mendukung GPS','warn'); return; }
+  navigator.geolocation.getCurrentPosition(p=>{
+    $lat.value = p.coords.latitude; $lng.value = p.coords.longitude;
+    setInfo('Lokasi berhasil diambil.','ok');
+  }, err=> setInfo('Gagal ambil lokasi: '+err.message,'err'), {enableHighAccuracy:true, timeout:10000});
+};
+
+/* Kirim (via FORM + iframe, anti-CORS) */
+byId('btnKirim').onclick = async ()=>{
+  if(!$nip.value.trim() || !$nama.value.trim()){ setInfo('Lengkapi NIP & Nama dulu.','warn'); return; }
+
+  setInfo('Menyiapkan & mengirim data…');
+  let fotoB64='', fotoType='';
+  const f = $foto.files[0];
+  if (f){
+    fotoType = f.type;
+    fotoB64 = await fileToBase64(f);
+    fotoB64 = fotoB64.replace(/^data:\w+\/[\w.+-]+;base64,/, '');
   }
 
   const payload = {
-    nip: fd.get('nip'),
-    nama: fd.get('nama'),
-    status: fd.get('status'),
-    lat: fd.get('lat'),
-    lng: fd.get('lng'),
-    foto: fotoBase64,
-    fotoType: fotoType
+    nip:$nip.value.trim(),
+    nama:$nama.value.trim(),
+    status:STATUS,       // MASUK/PULANG
+    lat:$lat.value, lng:$lng.value,
+    foto:fotoB64, fotoType:fotoType
   };
 
-  const form = document.getElementById('formAbsensi');
+  const form = byId('formHidden');
   form.action = API_URL;
-  document.getElementById('payload').value = JSON.stringify(payload);
+  byId('payload').value = JSON.stringify(payload);
 
-  const iframe = document.getElementById('hiddenFrame');
-  iframe.onload = ()=>{
-    info.textContent = 'Terkirim. Cek Spreadsheet.';
-    form.reset();
+  const sink = byId('sink');
+  sink.onload = ()=>{
+    setInfo('Terkirim. Cek Spreadsheet untuk memastikan.','ok');
+    // reset ringan (jangan kosongkan nama/NIP kalau mau)
+    $foto.value=''; 
   };
-});
 
+  form.submit(); // kirim!
+};
+
+/* utils */
 function fileToBase64(file){
   return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = ()=> resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+    const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
   });
 }
-</script>
 
+/* tampilkan daftar awal */
+renderSuggest('');
+</script>
 </body>
 </html>
