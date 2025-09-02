@@ -12,7 +12,7 @@
                radial-gradient(900px 500px at -10% 110%, #1a1d27 0%, transparent 60%),
                linear-gradient(180deg,#0c0d11 0%,#0e0f12 100%);
     font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial; }
-  .container{max-width:1000px;margin:0 auto;padding:24px}
+  .container{max-width:980px;margin:0 auto;padding:24px}
   .card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px; margin-bottom:16px;
     box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);}
   .header{display:flex; align-items:center; justify-content:space-between}
@@ -62,13 +62,14 @@
       <span class="pill" data-value="PULANG">PULANG</span>
       <span class="pill" data-value="IZIN">IZIN</span>
       <span class="pill" data-value="SAKIT">SAKIT</span>
+      <span class="pill" data-value="CUTI">CUTI</span>
       <span class="pill" data-value="LEMBUR">LEMBUR</span>
     </div>
 
     <div class="row">
       <div>
         <label>NIP</label>
-        <input id="nip" placeholder="NIP">
+        <input id="nip" placeholder="Contoh: 72321573MKS">
       </div>
       <div>
         <label>Nama</label>
@@ -116,7 +117,7 @@
 
     <div class="row">
       <div class="row-1">
-        <label>Laporan Harian</label>
+        <label>Harian</label>
         <div class="row">
           <input type="date" id="dailyDate">
           <button class="btn-ghost" id="btnDaily">Tampilkan</button>
@@ -124,7 +125,7 @@
         </div>
       </div>
       <div class="row-1">
-        <label>Laporan Bulanan</label>
+        <label>Bulanan</label>
         <div class="row">
           <input type="month" id="monthInput">
           <button class="btn-ghost" id="btnMonthly">Tampilkan</button>
@@ -146,10 +147,10 @@
 
 <script>
 /* ===== KONFIG ===== */
-const API_URL = "https://script.google.com/macros/s/AKfycbyya-WCBsb_cCIviIMY5x9irlKkWfsb3RvAzFdCOsRUR8dDbVjYS8FbRlds7mtUqLMs/exec"; // <-- GANTI ke URL /exec backend
+const API_URL = "https://script.google.com/macros/s/AKfycbxRKTEw5WvIS75U2IY6YsDhQETCdSLG12-rD4XACwOY2lHb8cEJO1qQYi8vJ_g9Fr_h/exec"; // <--- GANTI ke URL /exec backend
 /* ================== */
 
-// jam header
+// jam
 setInterval(()=>{
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   document.getElementById('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
@@ -163,7 +164,7 @@ document.getElementById('statusGroup').onclick = (e)=>{
   pill.classList.add('active'); STATUS = pill.dataset.value;
 };
 
-// ambil lokasi
+// lokasi
 document.getElementById('btnLokasi').onclick = ()=>{
   setInfo('Mengambil lokasi…');
   if (!navigator.geolocation) return setInfo('Peramban tidak mendukung GPS','warn');
@@ -176,7 +177,7 @@ document.getElementById('btnLokasi').onclick = ()=>{
 
 function setInfo(t,cls){ const el=document.getElementById('info'); el.className='muted '+(cls||''); el.textContent=t; }
 
-// kirim (via form + iframe)
+// kirim (form + iframe)
 document.getElementById('btnKirim').onclick = async ()=>{
   const nip = document.getElementById('nip').value.trim();
   const nama= document.getElementById('nama').value.trim();
@@ -201,7 +202,7 @@ document.getElementById('btnKirim').onclick = async ()=>{
   form.action = API_URL;
   document.getElementById('payload').value = JSON.stringify(payload);
   const sink = document.getElementById('sink');
-  sink.onload = ()=> setInfo('Terkirim. Cek laporan harian.','ok');
+  sink.onload = ()=> setInfo('Terkirim. Cek laporan harian/bulanan.','ok');
   form.submit();
 };
 
@@ -212,42 +213,37 @@ function fileToBase64(file){
   });
 }
 
-// ====== Laporan: GET JSON dari backend ======
+// Laporan (GET → aman)
 document.getElementById('btnDaily').onclick = async ()=>{
   const date = document.getElementById('dailyDate').value || new Date().toISOString().slice(0,10);
-  const url = `${API_URL}?action=report&type=daily&date=${date}`;
-  const res = await fetch(url); const json = await res.json();
+  const res = await fetch(`${API_URL}?action=report&type=daily&date=${date}`);
+  const json = await res.json();
   renderDaily(json.data||[], date);
 };
-
 document.getElementById('btnMonthly').onclick = async ()=>{
   const month = document.getElementById('monthInput').value || new Date().toISOString().slice(0,7);
-  const url = `${API_URL}?action=report&type=monthly&month=${month}`;
-  const res = await fetch(url); const json = await res.json();
+  const res = await fetch(`${API_URL}?action=report&type=monthly&month=${month}`);
+  const json = await res.json();
   renderMonthly(json.data||[], month);
 };
 
 // CSV export
 document.getElementById('btnDailyCsv').onclick = ()=>{
+  if (!currentDailyRows.length) return alert('Tampilkan laporan harian dulu.');
   const date = document.getElementById('dailyDate').value || new Date().toISOString().slice(0,10);
-  const rows = currentDailyRows;
-  if (!rows || !rows.length) return alert('Tampilkan laporan harian dulu.');
   const csv = toCSV([['Tanggal',date],[],['NIP','Nama','Status','Masuk','Pulang','DurasiJam','LemburJam'],
-    ...rows.map(r=>[r.nip,r.nama,r.status,r.masuk,r.pulang,r.durasiJam,r.lemburJam])]);
+    ...currentDailyRows.map(r=>[r.nip,r.nama,r.status,r.masuk,r.pulang,r.durasiJam,r.lemburJam])]);
   downloadFile(csv, `Laporan-Harian-${date}.csv`);
 };
-
 document.getElementById('btnMonthlyCsv').onclick = ()=>{
+  if (!currentMonthlyRows.length) return alert('Tampilkan laporan bulanan dulu.');
   const month = document.getElementById('monthInput').value || new Date().toISOString().slice(0,7);
-  const rows = currentMonthlyRows;
-  if (!rows || !rows.length) return alert('Tampilkan laporan bulanan dulu.');
   const csv = toCSV([['Bulan',month],[],['NIP','Nama','Hadir','Izin','Sakit','Cuti','Hari Lembur','Total Jam','Total Lembur'],
-    ...rows.map(r=>[r.nip,r.nama,r.hadir,r.izin,r.sakit,r.cuti,r.lemburHari,r.totalJam,r.totalLembur])]);
+    ...currentMonthlyRows.map(r=>[r.nip,r.nama,r.hadir,r.izin,r.sakit,r.cuti,r.lemburHari,r.totalJam,r.totalLembur])]);
   downloadFile(csv, `Laporan-Bulanan-${month}.csv`);
 };
 
 let currentDailyRows=[], currentMonthlyRows=[];
-
 function renderDaily(rows, date){
   currentDailyRows = rows;
   const thead = document.getElementById('thead');
@@ -260,7 +256,6 @@ function renderDaily(rows, date){
   </tr>`).join('');
   document.getElementById('lapInfo').textContent = `Harian: ${date} — ${rows.length} baris.`;
 }
-
 function renderMonthly(rows, month){
   currentMonthlyRows = rows;
   const thead = document.getElementById('thead');
@@ -273,20 +268,16 @@ function renderMonthly(rows, month){
   </tr>`).join('');
   document.getElementById('lapInfo').textContent = `Bulanan: ${month} — ${rows.length} baris.`;
 }
-
 function toCSV(rows){
   return rows.map(r=>r.map(v=>{
     const s = String(v==null?'':v);
     return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
   }).join(',')).join('\n');
 }
-
 function downloadFile(text, filename){
   const blob = new Blob([text], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
+  a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
 }
 </script>
 </body>
