@@ -1,11 +1,113 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>TEST PAGES</title>
-  </head>
-  <body>
-    <h1>OK — GitHub Pages jalan 🎉</h1>
-    <p>Jika kamu membaca ini, hosting sudah benar.</p>
-  </body>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Absensi</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:20px;max-width:640px}
+    label{display:block;margin:8px 0 4px}
+    input,select,button{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+    button{cursor:pointer;margin-top:10px}
+    .muted{color:#666;font-size:12px;margin-top:8px}
+    iframe{display:none}
+  </style>
+</head>
+<body>
+
+<h2>Form Absensi</h2>
+
+<form id="formAbsensi" method="POST" target="hiddenFrame">
+  <label>NIP</label>
+  <input name="nip" required>
+
+  <label>Nama</label>
+  <input name="nama" required>
+
+  <label>Status</label>
+  <select name="status" required>
+    <option value="HADIR">Hadir</option>
+    <option value="IZIN">Izin</option>
+    <option value="SAKIT">Sakit</option>
+    <option value="LEMBUR">Lembur</option>
+  </select>
+
+  <label>Foto Selfie</label>
+  <input type="file" id="foto" accept="image/*" capture="user">
+
+  <button type="button" id="btnLokasi">Ambil Lokasi</button>
+  <input type="hidden" name="lat">
+  <input type="hidden" name="lng">
+
+  <input type="hidden" name="payload" id="payload">
+
+  <button type="submit" id="btnKirim">Kirim Absensi</button>
+</form>
+
+<p id="info" class="muted"></p>
+
+<iframe name="hiddenFrame" id="hiddenFrame"></iframe>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwtFCmmNx6W1SH3fS-SLL9NJclRmhGV4Mk_IWrHlfX-y2mt64gVb2aC4q52GFtKvWkm/exec"; // <-- ganti dengan URL /exec
+
+document.getElementById('btnLokasi').onclick = ()=>{
+  const info = document.getElementById('info');
+  info.textContent = 'Mengambil lokasi...';
+  if (!navigator.geolocation){ info.textContent='Browser tidak mendukung GPS.'; return; }
+  navigator.geolocation.getCurrentPosition(p=>{
+    document.querySelector('input[name=lat]').value = p.coords.latitude;
+    document.querySelector('input[name=lng]').value = p.coords.longitude;
+    info.textContent = 'Lokasi berhasil diambil';
+  }, e=>{
+    info.textContent = 'Gagal ambil lokasi: ' + e.message;
+  }, {enableHighAccuracy:true, timeout:10000});
+};
+
+document.getElementById('formAbsensi').addEventListener('submit', async (e)=>{
+  const info = document.getElementById('info');
+  info.textContent = 'Menyiapkan & mengirim data...';
+
+  const fd = new FormData(e.target);
+
+  let fotoBase64 = '', fotoType = '';
+  const f = document.getElementById('foto').files[0];
+  if (f) {
+    fotoType = f.type; // image/webp / image/jpeg / image/png
+    fotoBase64 = await fileToBase64(f);
+    fotoBase64 = fotoBase64.replace(/^data:\w+\/[\w.+-]+;base64,/, '');
+  }
+
+  const payload = {
+    nip: fd.get('nip'),
+    nama: fd.get('nama'),
+    status: fd.get('status'),
+    lat: fd.get('lat'),
+    lng: fd.get('lng'),
+    foto: fotoBase64,
+    fotoType: fotoType
+  };
+
+  const form = document.getElementById('formAbsensi');
+  form.action = API_URL;
+  document.getElementById('payload').value = JSON.stringify(payload);
+
+  const iframe = document.getElementById('hiddenFrame');
+  iframe.onload = ()=>{
+    info.textContent = 'Terkirim. Cek Spreadsheet.';
+    form.reset();
+  };
+});
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+</script>
+
+</body>
 </html>
