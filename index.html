@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Absensi Karyawan</title>
+<title>Absensi YANTEK ULP Karebosi</title>
 <style>
   :root{
     --bg:#0e0f12; --card:#171821; --muted:#9aa0aa; --primary:#f5c451; --accent:#6dd3fb;
@@ -20,19 +20,14 @@
     display:flex; align-items:center; justify-content:center; padding:24px;
   }
   .card{
-    width:100%; max-width:760px; background:var(--card);
+    width:100%; max-width:820px; background:var(--card);
     border:1px solid var(--line); border-radius:20px; padding:22px;
     box-shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
   }
-  .header{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
-  }
+  .header{display:flex; align-items:center; justify-content:space-between}
   .brand{display:flex; align-items:center; gap:12px}
-  .logo{
-    width:42px; height:42px; border-radius:12px;
-    background:linear-gradient(135deg, var(--primary), #ffd98f);
-    box-shadow:0 6px 18px rgba(245,196,81,.35);
-  }
+  .brand img{width:46px;height:46px;border-radius:10px;object-fit:cover;display:none}
+  .brand img.loaded{display:block}
   h1{margin:0; font-size:20px; letter-spacing:.3px}
   .clock{color:var(--primary); font-variant-numeric:tabular-nums; font-weight:600}
   .row{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
@@ -43,7 +38,6 @@
     background:#111218; color:var(--text); outline:none;
   }
   input::placeholder{color:#6f7682}
-  select{appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%); background-position:calc(100% - 20px) calc(1em + 6px),calc(100% - 15px) calc(1em + 6px); background-size:5px 5px,5px 5px; background-repeat:no-repeat}
   .btn{
     background:linear-gradient(135deg, var(--primary), #ffd98f);
     color:#1b1b1b; border:none; font-weight:700; letter-spacing:.3px;
@@ -55,13 +49,9 @@
   .muted{color:var(--muted); font-size:12px; margin-top:8px}
   .divider{height:1px; background:var(--line); margin:16px 0}
   .status{display:flex; gap:10px}
-  .pill{
-    padding:8px 12px; border-radius:999px; border:1px solid var(--line); cursor:pointer; user-select:none
-  }
+  .pill{ padding:8px 12px; border-radius:999px; border:1px solid var(--line); cursor:pointer; user-select:none }
   .pill.active{background:rgba(245,196,81,.12); border-color:#3a2e12; color:var(--primary)}
-  .list{
-    position:relative;
-  }
+  .list{ position:relative; }
   .suggest{
     position:absolute; top:100%; left:0; right:0; background:#0f1116; border:1px solid var(--line);
     border-radius:12px; overflow:hidden; margin-top:6px; max-height:240px; overflow-y:auto; display:none; z-index:20;
@@ -71,23 +61,26 @@
     border-bottom:1px solid #151826; cursor:pointer;
   }
   .suggest button:hover{background:#161a23}
-  .hidden{display:none}
-  .ok{color:#8ddf9a}
-  .warn{color:#ffb86b}
-  .err{color:#ff7979}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
 </style>
 </head>
 <body>
   <div class="card">
     <div class="header">
       <div class="brand">
-        <div class="logo"></div>
-        <h1>Absensi Karyawan</h1>
+        <img id="logo" alt="PLN Logo" src="pln.png" onload="this.classList.add('loaded')" onerror="this.remove()">
+        <div>
+          <h1>Absensi YANTEK ULP Karebosi</h1>
+          <div class="muted">Scan • Click • Done</div>
+        </div>
       </div>
       <div class="clock" id="clock">--:--:--</div>
     </div>
 
-    <!-- STATUS MASUK/PULANG -->
+    <div class="actions">
+      <button class="btn-ghost" id="btnDashboard" type="button">Buka Dashboard Rekap</button>
+    </div>
+
     <label>Status</label>
     <div class="status" id="statusGroup">
       <div class="pill active" data-value="MASUK">MASUK</div>
@@ -139,24 +132,23 @@
       </div>
     </div>
 
-    <div class="row row-1">
+    <div class="row row-1" style="margin-top:8px">
       <button class="btn" id="btnKirim">Kirim Absensi</button>
     </div>
 
     <p class="muted" id="info">Siap untuk absen.</p>
 
-    <!-- form & iframe hidden (anti-CORS) -->
-    <form id="formHidden" class="hidden" method="POST" target="sink"></form>
+    <!-- anti-CORS form -->
+    <form id="formHidden" style="display:none" method="POST" target="sink"></form>
     <input type="hidden" id="payload" name="payload" form="formHidden">
-    <iframe name="sink" id="sink" class="hidden"></iframe>
+    <iframe name="sink" id="sink" style="display:none"></iframe>
   </div>
 
 <script>
-/* ================== KONFIG ================== */
-const API_URL = "https://script.google.com/macros/s/AKfycbwU2Z9cKOm4nEq2-3P_ul1sUVCwz_yFs7XBU9iddLJjTcx5XaJQVDX8X-kRevTYWLD8/exec"; // <--- GANTI DENGAN URL /exec
-/* ============================================ */
+/* =============== KONFIGURASI =============== */
+const API_URL = "https://script.google.com/macros/s/AKfycbys7n6R-eFM8Ij_cHO4Fb8iUuesGo1YoeUDixptu6pyKjRi225TR3NsE6MUM_DnpvBo/exec"; // <--- GANTI DENGAN URL /exec
+/* =========================================== */
 
-/** Daftar karyawan (NIP | NAMA) */
 const PEGAWAI = [
   ["72321573MKS","NURDIN NUR"],
   ["79231562MKS","SUTRISNO"],
@@ -182,21 +174,27 @@ const PEGAWAI = [
   ["89223353MKS","MUSJIFRIONO"]
 ];
 
-/* ==== UI helpers ==== */
 const byId = x=>document.getElementById(x);
 const $nip = byId('nip'), $nama = byId('nama'), $search = byId('search');
 const $suggest = byId('suggest'), $info = byId('info');
 const $lat = byId('lat'), $lng = byId('lng'), $foto = byId('foto');
 
-function setInfo(text, cls=''){ $info.className='muted ' + cls; $info.textContent=text; }
+function setInfo(t, cls=''){ $info.className='muted '+cls; $info.textContent=t; }
 
-/* Clock */
+// clock
 setInterval(()=>{
-  const d=new Date(); const pad=n=>String(n).padStart(2,'0');
-  byId('clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const d=new Date(); const p=n=>String(n).padStart(2,'0');
+  byId('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 },1000);
 
-/* Status toggle */
+// dashboard
+byId('btnDashboard').onclick = ()=>{
+  const d = new Date(); const p=n=>String(n).padStart(2,'0');
+  const month = `${d.getFullYear()}-${p(d.getMonth()+1)}`;
+  window.open(`${API_URL}?action=dashboard&month=${month}`, '_blank');
+};
+
+// status
 let STATUS = 'MASUK';
 byId('statusGroup').onclick = (e)=>{
   const pill = e.target.closest('.pill'); if(!pill) return;
@@ -204,14 +202,14 @@ byId('statusGroup').onclick = (e)=>{
   pill.classList.add('active'); STATUS = pill.dataset.value || 'MASUK';
 };
 
-/* Search & pick */
+// search
 function renderSuggest(q=''){
   const qq = q.trim().toLowerCase();
   const data = PEGAWAI.filter(([nip,nama]) =>
     nip.toLowerCase().includes(qq) || nama.toLowerCase().includes(qq)
-  ).slice(0,20);
+  ).slice(0,30);
   $suggest.innerHTML = data.map(([nip,nama]) =>
-    `<button type="button" data-nip="${nip}" data-nama="${nama}">${nama} — <span style="color:#8aa2; font-variant-numeric:tabular-nums">${nip}</span></button>`
+    `<button type="button" data-nip="${nip}" data-nama="${nama}">${nama} — <span style="color:#8aa2">${nip}</span></button>`
   ).join('');
   $suggest.style.display = data.length ? 'block' : 'none';
 }
@@ -219,15 +217,15 @@ $search.addEventListener('input', e=>renderSuggest(e.target.value));
 $suggest.addEventListener('click', e=>{
   const btn=e.target.closest('button'); if(!btn) return;
   $nip.value = btn.dataset.nip; $nama.value = btn.dataset.nama;
-  $suggest.style.display='none'; setInfo('Data karyawan terpilih.', 'ok');
+  $suggest.style.display='none'; setInfo('Data karyawan terpilih.','ok');
 });
 
-/* Autofill via QR params */
+// QR autofill
 const qs = new URLSearchParams(location.search);
 if (qs.get('nip')) $nip.value = qs.get('nip');
 if (qs.get('nama')) $nama.value = qs.get('nama');
 
-/* Lokasi */
+// lokasi
 byId('btnLokasi').onclick = ()=>{
   setInfo('Mengambil lokasi…');
   if(!navigator.geolocation){ setInfo('Peramban tidak mendukung GPS','warn'); return; }
@@ -237,11 +235,12 @@ byId('btnLokasi').onclick = ()=>{
   }, err=> setInfo('Gagal ambil lokasi: '+err.message,'err'), {enableHighAccuracy:true, timeout:10000});
 };
 
-/* Kirim (via FORM + iframe, anti-CORS) */
+// kirim (via form + iframe)
 byId('btnKirim').onclick = async ()=>{
   if(!$nip.value.trim() || !$nama.value.trim()){ setInfo('Lengkapi NIP & Nama dulu.','warn'); return; }
 
   setInfo('Menyiapkan & mengirim data…');
+
   let fotoB64='', fotoType='';
   const f = $foto.files[0];
   if (f){
@@ -253,7 +252,7 @@ byId('btnKirim').onclick = async ()=>{
   const payload = {
     nip:$nip.value.trim(),
     nama:$nama.value.trim(),
-    status:STATUS,       // MASUK/PULANG
+    status:STATUS,
     lat:$lat.value, lng:$lng.value,
     foto:fotoB64, fotoType:fotoType
   };
@@ -263,23 +262,17 @@ byId('btnKirim').onclick = async ()=>{
   byId('payload').value = JSON.stringify(payload);
 
   const sink = byId('sink');
-  sink.onload = ()=>{
-    setInfo('Terkirim. Cek Spreadsheet untuk memastikan.','ok');
-    // reset ringan (jangan kosongkan nama/NIP kalau mau)
-    $foto.value=''; 
-  };
-
-  form.submit(); // kirim!
+  sink.onload = ()=>{ setInfo('Terkirim. Cek Spreadsheet.','ok'); /* reset ringan */ $foto.value=''; };
+  form.submit();
 };
 
-/* utils */
 function fileToBase64(file){
   return new Promise((resolve,reject)=>{
     const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
   });
 }
 
-/* tampilkan daftar awal */
+// default suggest list
 renderSuggest('');
 </script>
 </body>
